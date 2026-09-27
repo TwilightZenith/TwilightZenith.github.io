@@ -8,17 +8,24 @@
 daff_page/
 ├── docs/
 │   ├── vla-tech.md        # 源文档 1：VLA 报告（默认首页 /）
-│   └── beauty_vim.md      # 源文档 2：Vim/终端配置笔记（路由 /beauty_vim）
+│   ├── beauty_vim.md      # 源文档 2：Vim/终端配置笔记（路由 /beauty_vim）
+│   └── VLN.md             # 源文档 3：VLN 笔记（路由 /VLN）
+├── assets/
+│   └── omniNav.png        # 图片源文件；GitHub Pages 直接提供，构建时复制到 dist/assets/
 ├── scripts/
-│   ├── build.mjs          # 构建脚本：扫描 docs/*.md → dist/ 静态站点 + 轻量 worker.js
+│   ├── build.mjs          # 构建脚本：扫描 docs/*.md → dist/、根目录页面 + worker.js
 │   └── server.mjs         # 本地开发服务器：模拟 Cloudflare Worker（静态资产模式）
-├── dist/                  # 构建产物：独立 HTML 静态文件（部署资产，勿手改）
+├── dist/                  # Cloudflare 构建产物：HTML + assets/（勿手改）
 │   ├── index.html         # 首页
 │   ├── vla-tech.html
-│   └── beauty_vim.html
+│   ├── beauty_vim.html
+│   ├── VLN.html
+│   └── assets/            # 从根目录 assets/ 复制的图片等文件
 ├── index.html             # GitHub Pages 首页（勿手改）
 ├── beauty_vim.html        # GitHub Pages 第二页，带 .html 的地址（勿手改）
 ├── beauty_vim/index.html  # GitHub Pages 第二页，/beauty_vim 路由（勿手改）
+├── VLN.html               # GitHub Pages VLN 页面（勿手改）
+├── VLN/index.html         # GitHub Pages /VLN 路由（勿手改）
 ├── worker.js              # 构建产物（轻量路由兜底：/xxx → /xxx.html，勿手改）
 ├── wrangler.jsonc         # Cloudflare Workers 配置（main + assets 指向 dist/）
 ├── package.json           # npm 配置（build/dev 脚本 + marked 依赖）
@@ -26,7 +33,7 @@ daff_page/
 └── .gitignore             # 忽略 node_modules / .wrangler 等
 ```
 
-> `dist/`、根目录生成的 HTML 与 `worker.js` 均由构建脚本自动生成，修改源文档后需重新构建；不要直接编辑它们。生成文件必须提交到 Git（Cloudflare 构建仅执行 deploy 命令，不执行 build；GitHub Pages 从仓库根目录发布）。
+> `dist/`、根目录生成的 HTML 与 `worker.js` 均由构建脚本自动生成，修改源文档或图片后需重新构建；不要直接编辑它们。源图片和生成文件必须提交到 Git（Cloudflare 构建仅执行 deploy 命令，不执行 build；GitHub Pages 从仓库根目录发布）。
 
 ## 前置要求
 
@@ -43,7 +50,7 @@ npm install
 npm run build
 ```
 
-构建产物输出到 `dist/`（Cloudflare 静态文件）、`worker.js`（Cloudflare 路由兜底）和仓库根目录（GitHub Pages 静态文件）。
+构建产物输出到 `dist/`（Cloudflare 静态文件及图片）、`worker.js`（Cloudflare 路由兜底）和仓库根目录（GitHub Pages 静态页面；图片直接使用根目录的 `assets/`）。
 
 ## 本地预览
 
@@ -65,7 +72,7 @@ start index.html
 | Node 版本要求 | ≥ 18（当前项目 v20 即可） | ≥ 22（wrangler 4.x 要求） |
 | 是否需要登录 | 否 | 否（dev 模式） |
 | 访问地址 | http://127.0.0.1:8787/ | http://localhost:8787/ |
-| 适用场景 | 本项目（单页面，无绑定）够用 | 需要调试完整 Worker 环境时 |
+| 适用场景 | 本项目（静态多页面，无其他绑定）够用 | 需要调试完整 Worker 环境时 |
 
 本项目的 Worker 只做 `dist/` 静态资产的路由兜底（`/xxx → /xxx.html`），`npm run dev` 已足够且无 Node 版本门槛；`npx wrangler dev` 是官方全能方案，但需要 Node ≥ 22。
 
@@ -77,6 +84,7 @@ start index.html
 | --- | --- | --- |
 | `docs/vla-tech.md` | `/`（及 `/vla-tech`、`/vla-tech.html`） | 默认首页 |
 | `docs/beauty_vim.md` | `/beauty_vim`（及 `/beauty_vim.html`） | 自动生成的第二页；GitHub Pages 将前者转到 `/beauty_vim/` |
+| `docs/VLN.md` | `/VLN`（及 `/VLN.html`） | 自动生成的 VLN 页面 |
 
 **页面间跳转方式：**
 
@@ -89,9 +97,35 @@ start index.html
 
 构建后链接会自动变成 `beauty_vim.html`；GitHub Pages 与 Cloudflare 均可访问。
 
+### 为什么 GitHub Pages 上的 `/beauty_vim` 曾经打不开
+
+GitHub Pages 当前从仓库**根目录**发布文件。旧版构建只在根目录生成 `index.html`，而第二页仅在 `dist/beauty_vim.html`。因此首页能打开，`/dist/beauty_vim.html` 也能打开，但首页导航指向的 `/beauty_vim` 在根目录找不到对应页面。Cloudflare 的 `worker.js` 会把 `/beauty_vim` 改写为 `/beauty_vim.html` 并从 `dist/` 读取；GitHub Pages 不运行这个 Worker。
+
+现在 `scripts/build.mjs` 在每次 `npm run build` 时，除 `dist/` 外，还把 `docs/beauty_vim.md` 渲染后的同一份 HTML 写到仓库根目录的两个位置：
+
+| GitHub Pages 请求 | 根目录构建产物 | 作用 |
+| --- | --- | --- |
+| `/beauty_vim` | `beauty_vim/index.html` | GitHub Pages 将目录地址规范化为 `/beauty_vim/`，再提供该目录的首页 |
+| `/beauty_vim.html` | `beauty_vim.html` | 直接按文件名访问 |
+
+首页导航仍指向 `/beauty_vim`。将新生成的根目录页面连同构建脚本提交并推送后，这个链接才会在线上生效。以后新增 `docs/xxx.md` 时，构建脚本也会生成根目录的 `xxx.html` 和 `xxx/index.html`；Cloudflare 仍使用 `dist/` 和 `worker.js`。
+
 > ⚠️ 不要用 `file:///...` 绝对本地路径写链接（如 `[xxx](file:///D:/.../xxx.md)`），部署到 Cloudflare 后无效。
 
 新增页面只需往 `docs/` 放一个 `.md` 文件，重新构建即自动出现在导航条与路由表中。
+
+## 在 Markdown 中添加本地图片
+
+1. 把图片放到仓库根目录的 `assets/`，例如 `assets/omniNav.png`。文件名大小写要与引用完全一致。
+2. 在 `docs/*.md` 中使用从站点根路径开始的地址：
+
+```markdown
+![OmniNav 示意图](/assets/omniNav.png)
+```
+
+`/assets/...` 在 `/VLN`、`/VLN/` 和 `/VLN.html` 等页面地址下都指向同一张图片。`npm run build` 会把根目录 `assets/` 复制到 `dist/assets/`：GitHub Pages 直接提供根目录图片，Cloudflare 从 `dist/assets/` 提供。不要在 Markdown 中写本机绝对路径或依赖当前页面层级的 `../omniNav.png`。
+
+添加或更换图片后，运行 `npm run build`，并提交 `docs/`、根目录 `assets/`、`dist/` 和生成的 HTML；推送后两个站点才能读取新图片。可先检查 `dist/assets/omniNav.png` 是否生成，再在本地预览页面中确认图片显示。
 
 ## 更新文档
 
@@ -100,7 +134,7 @@ start index.html
 3. 提交并推送：
 
 ```bash
-git add docs/ dist/ index.html beauty_vim.html beauty_vim/index.html worker.js
+git add docs/ assets/ dist/ scripts/build.mjs index.html beauty_vim.html beauty_vim/index.html VLN.html VLN/index.html worker.js
 git commit -m "docs: 更新报告内容"
 git push
 ```

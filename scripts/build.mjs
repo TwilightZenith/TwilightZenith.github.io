@@ -8,9 +8,10 @@
  *  - 非首页同时生成根目录 {文件名}.html 和 {文件名}/index.html（GitHub Pages 路由）
  *  - vla-tech.md 同时作为首页（dist/index.html）
  *  - md 内站内链接写相对路径 xxx.md，构建时自动重写为 xxx.html
+ *  - 根目录 assets/ 中的图片等文件复制到 dist/assets/，供两个托管平台使用
  *  - worker.js 仅做友好路由兜底：/xxx → /xxx.html（页面本体全部在 dist/，不再内嵌）
  */
-import { readFileSync, writeFileSync, readdirSync, mkdirSync, rmSync, copyFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, mkdirSync, rmSync, cpSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, basename } from 'node:path';
 import { marked } from 'marked';
@@ -18,6 +19,7 @@ import { marked } from 'marked';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DOCS_DIR = join(ROOT, 'docs');
 const DIST_DIR = join(ROOT, 'dist');
+const ASSETS_DIR = join(ROOT, 'assets');
 const OUT_PATH = join(ROOT, 'index.html'); // GitHub Pages 根目录首页
 const WORKER_PATH = join(ROOT, 'worker.js');
 const HOME_ROUTE = 'vla-tech'; // 默认首页
@@ -193,6 +195,9 @@ for (const p of pages) {
 // 每次构建清空 dist，防止旧页面残留
 rmSync(DIST_DIR, { recursive: true, force: true });
 mkdirSync(DIST_DIR, { recursive: true });
+if (existsSync(ASSETS_DIR)) {
+  cpSync(ASSETS_DIR, join(DIST_DIR, 'assets'), { recursive: true });
+}
 
 for (const p of pages) {
   writeFileSync(join(DIST_DIR, `${p.route}.html`), p.html, 'utf8');
