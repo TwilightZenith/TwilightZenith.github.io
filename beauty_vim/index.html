@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>.vimrc</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.1/github-markdown-light.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<style>
+  :root { --toc-w: 280px; --border: #d8dee4; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: #fff; color: #1f2328;
+         font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+  /* 顶部站点导航 */
+  .sitenav { display: flex; flex-wrap: wrap; gap: 4px 20px; align-items: center;
+             padding: 10px 24px; background: #f6f8fa; border-bottom: 1px solid var(--border); }
+  .sitenav .label { font-size: 12px; color: #57606a; margin-right: 4px; }
+  .sitenav a { color: #0969da; text-decoration: none; font-size: 14px; }
+  .sitenav a:hover { text-decoration: underline; }
+  .layout { display: flex; min-height: 100vh; }
+  /* 左侧目录 */
+  .toc {
+    width: var(--toc-w); flex: 0 0 var(--toc-w);
+    border-right: 1px solid var(--border);
+    padding: 28px 18px; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    background: #fff; font-size: 14px;
+  }
+  .toc .brand { font-weight: 700; font-size: 15px; margin-bottom: 6px; color: #0969da; }
+  .toc .brand-sub { font-size: 12px; color: #57606a; margin-bottom: 18px; }
+  .toc a { display: block; padding: 5px 10px; margin: 1px 0; border-radius: 6px;
+           color: #24292f; text-decoration: none; line-height: 1.45; }
+  .toc a:hover { background: #eaeef2; color: #0969da; }
+  /* 右侧正文 */
+  .content { flex: 1; min-width: 0; padding: 40px 48px 80px; }
+  .markdown-body { max-width: 960px; margin: 0 auto; }
+  .markdown-body h1 { padding-bottom: .3em; border-bottom: 1px solid var(--border); }
+  .markdown-body pre { border-radius: 8px; }
+  .markdown-body pre.mermaid { background: #fff; text-align: center; border: 1px dashed var(--border); }
+  .markdown-body table { display: table; width: 100%; }
+  .markdown-body img { max-width: 100%; }
+  /* 移动端 */
+  @media (max-width: 860px) {
+    .layout { flex-direction: column; }
+    .toc { width: 100%; flex: none; height: auto; position: static; max-height: 40vh; }
+    .content { padding: 24px 16px 60px; }
+  }
+</style>
+</head>
+<body>
+<nav class="sitenav" aria-label="站点导航"><span class="label">📄 页面：</span><a href="/beauty_vim">beauty_vim</a><a href="/">vla-tech</a></nav>
+<div class="layout">
+  <nav class="toc" aria-label="目录">
+    <div class="brand">📚 本页目录</div>
+    <div class="brand-sub">.vimrc</div>
+    <a href="#toc-1">gitbash</a><a href="#toc-2">msys2</a><a href="#toc-3">.bashrc</a>
+  </nav>
+  <main class="content">
+    <article class="markdown-body">
+<h1 id="h-1">.vimrc</h1><pre><code class="language-powershell">let mapleader=" "
+set autoread
+" quickfix模式
+ autocmd FileType c,cpp map <buffer> <leader><space> :w<cr>:make<cr>
+" "代码补全 
+ set completeopt=preview,menu 
+" "允许插件  
+ filetype plugin on
+" "共享剪贴板  
+ set clipboard=unnamed 
+" "从不备份  
+ set nobackup
+" "make 运行
+ :set makeprg=g++\ -Wall\ \ %
+" "自动保存
+ set autowrite
+ set ruler                   " 打开状态栏标尺
+ set cursorline              " 突出显示当前行
+ highlight CursorLine   cterm=NONE ctermbg=black ctermfg=green guibg=NONE guifg=NONE
+ set magic                   " 设置魔术
+ set guioptions-=T           " 隐藏工具栏
+ set guioptions-=m           " 隐藏菜单栏
+ set statusline=\%<%F[%1*%M%*%n%R%H]%=\%y\%0(%{&fileformat}\%{&encoding}\%c:%l/%L%)\
+" " 设置在状态行显示的信息
+set foldcolumn=0
+ set foldmethod=indent 
+ set foldlevel=3 
+ set foldenable              " 开始折叠
+" " 不要使用vi的键盘模式，而是vim自己的
+ set nocompatible
+" " 语法高亮
+ set syntax=on
+" " 去掉输入错误的提示声音
+" set noeb
+" " 在处理未保存或只读文件的时候，弹出确认
+ set confirm
+" " 自动缩进
+ set autoindent
+ set cindent
+" " Tab键的宽度
+ set tabstop=4
+" " 统一缩进为4
+ set softtabstop=4
+ set shiftwidth=4
+" " 不要用空格代替制表符
+ set noexpandtab
+" " 在行和段开始处使用制表符
+ set smarttab
+" " 显示行号
+ set number
+" " 历史记录数
+ set history=30
+" "禁止生成临时文件
+ set nobackup
+ set noswapfile
+" "搜索忽略大小写
+ set ignorecase
+set smartcase
+ " "搜索逐字符高亮
+ set hlsearch
+ set incsearch
+" "行内替换
+ set gdefault
+" "编码设置
+ set enc=utf-8
+ set fencs=utf-8,ucs-bom,shift-jis,gb18030,gbk,gb2312,cp936
+" "语言设置
+ set langmenu=zh_CN.UTF-8
+ set helplang=cn
+" 我的状态行显示的内容（包括文件类型和解码）
+ set statusline=%F%m%r%h%w\ [FORMAT=%{&ff}]\ [TYPE=%Y]\ [POS=%l,%v][%p%%]\%{strftime(\"%d/%m/%y\-\%H:%M\")}
+ set statusline=[%F]%y%r%m%*%=[Line:%l/%L,Column:%c][%p%%]
+" " 总是显示状态行
+ set laststatus=2
+" " 命令行（在状态行下）的高度，默认为1，这里是2
+ set cmdheight=2
+" " 侦测文件类型
+ filetype on
+" " 载入文件类型插件
+ filetype plugin on
+" " 为特定文件类型载入相关缩进文件
+ filetype indent on
+" " 保存全局变量
+ set viminfo+=!
+" " 带有如下符号的单词不要被换行分割
+ set iskeyword+=_,$,@,%,#,-
+" " 字符间插入的像素行数目
+ set linespace=0
+" " 增强模式中的命令行自动完成操作
+ set wildmenu
+" " 使回格键（backspace）正常处理indent, eol, start等
+ set backspace=2
+" " 允许backspace和光标键跨越行边界
+ set whichwrap+=<,>,h,l
+" " 可以在buffer的任何地方使用鼠标（类似office中在工作区双击鼠标定位）
+ set mouse=c
+ set selection=exclusive
+ set selectmode=mouse,key
+" " 通过使用: commands命令，告诉我们文件的哪一行被改变过
+ set report=0
+" " 在被分割的窗口间显示空白，便于阅读
+ set fillchars=vert:\ ,stl:\ ,stlnc:\
+" " 高亮显示匹配的括号
+ set showmatch
+" " 匹配括号高亮的时间（单位是十分之一秒）
+ set matchtime=1
+" " 光标移动到buffer的顶部和底部时保持3行距离
+ set scrolloff=3
+" " 为C程序提供自动缩进
+ set smartindent
+" " 高亮显示普通txt文件（需要txt.vim脚本）
+  au BufRead,BufNewFile *  setfiletype txt
+"  "自动补全
+  :inoremap ( ()<ESC>i
+  :inoremap ) <c-r>=ClosePair(')')<CR>
+  :inoremap { {}<ESC>i
+  :inoremap {<CR> {<CR>}<ESC>O
+ :inoremap } <c-r>=ClosePair('}')<CR>
+  :inoremap [ []<ESC>i
+  :inoremap ] <c-r>=ClosePair(']')<CR>
+  :inoremap " ""<ESC>i
+:inoremap ' ''<ESC>i
+noremap s :w<CR>
+noremap q :wq<CR>
+noremap bn :bn<CR>
+noremap bp :bp<CR>
+noremap <LEADER>l <C-w>l
+noremap <LEADER>h <C-w>h
+map <F3> :NERDTreeMirror<CR>
+map <F3> :NERDTreeToggle<CR>
+function! ClosePair(char)
+	if getline('.')[col('.') - 1] == a:char
+		return "\<Right>"
+	else
+		return a:char
+	endif
+endfunction
+filetype plugin indent on 
+"打开文件类型检测, 加了这句才可以用智能补全
+set completeopt=longest,menu
+</code></pre><h1 id="h-2">windows terminal 安装软件</h1><ol>
+<li>历史搜索 fzf，可以一次性提示多个历史命令</li>
+</ol>
+<h2 id="toc-1">gitbash</h2><p>git bash profile：</p>
+<pre><code class="language-lua">D:\software\Git\bin\bash.exe --noprofile  --rcfile "C:/Users/11443/.bashrc" -i</code></pre><h2 id="toc-2">msys2</h2><ol>
+<li>windows terminal profile，用于继承用户环境变量里的软件</li>
+</ol>
+<pre><code class="language-json">{
+  "commandline": "D:\\software\\msys2\\msys2_shell.cmd -defterm -here -no-start -ucrt64",
+  "guid": "{cf4a43bb-3eaa-4f5c-911f-8c18bbce19c6}",
+  "hidden": false,
+  "icon": "\ud83d\udef9",
+  "name": "git (Copy)",
+  "startingDirectory": "D:",
+  "environment": {
+    "MSYSTEM": "UCRT64",
+    "MSYS2_PATH_TYPE": "inherit"
+  }
+}</code></pre><ol start="2">
+<li>家目录配置：修改 <code>D:\software\msys2\etc\nsswitch.conf</code>文件中的 db_home</li>
+</ol>
+<pre><code class="language-yaml"># Begin /etc/nsswitch.conf
+
+passwd: files db
+group: files db
+
+db_enum: cache builtin
+
+db_home: windows   # 修改这行为windows就会使用windows用户路径为 ~ 目录了
+db_shell: cygwin desc
+db_gecos: cygwin desc
+
+# End /etc/nsswitch.conf
+</code></pre><h2 id="toc-3">.bashrc</h2><pre><code class="language-yaml">export HISTFILE="$HOME/.bash_history"
+export HISTSIZE=5000
+export HISTFILESIZE=10000
+export HISTCONTROL=ignoreboth
+shopt -s histappend
+
+unset LC_ALL
+export LANG=zh_CN.UTF-8
+export LC_CTYPE=zh_CN.UTF-8
+if [ -t 1 ]; then
+    # 对于 Windows Terminal 或 ConHost，直接用 cmd 的 chcp 命令
+    # 注意：这条命令会改变当前终端会话的代码页
+    chcp.com 65001 > /dev/null 2>&1
+fi
+
+# 每次显示提示符前：
+# -a：将当前终端的新命令追加到历史文件
+# -n：读取其他终端刚追加的命令
+__bash_history_sync() {
+    builtin history -a
+    builtin history -n
+}
+
+PROMPT_COMMAND="__bash_history_sync${PROMPT_COMMAND:+; $PROMPT_COMMAND}"
+
+export PATH="/mingw64/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
+export PATH="/d/software/Git/bin:$PATH"
+export HOME="${HOME:-/c/Users/11443}"
+export USER="${USER:-11443}"
+
+[[ $- == *i* ]] || return
+
+alias ls='/usr/bin/ls -F --color=auto --show-control-chars'
+alias ll='/usr/bin/ls -alFh --color=auto --show-control-chars'
+alias la='/usr/bin/ls -AF --color=auto --show-control-chars'
+alias l='/usr/bin/ls -CF --color=auto --show-control-chars'
+
+
+# 按需启用，会增加约 0.3 秒
+[[ -r ~/.cache/fzf.bash ]] && source ~/.cache/fzf.bash
+
+# Ctrl+R 前主动读取其他已打开终端的新历史
+if declare -F fzf-history-widget >/dev/null; then
+    __fzf_shared_history() {
+        builtin history -n
+        fzf-history-widget
+    }
+
+    bind -m emacs-standard -x '"\C-r": __fzf_shared_history'
+    bind -m vi-insertion -x '"\C-r": __fzf_shared_history'
+fi
+
+if [[ -r ~/.cache/starship-init.bash ]]; then
+    source ~/.cache/starship-init.bash
+fi
+
+
+export HITHINK_FINANCE_API_KEY=sk-fuyao-JfAPMGnhXPY4GjRaRwuVzv5fSFwGK6NM
+
+. "$HOME/.local/bin/env"</code></pre><h1 id="h-3">zsh终端</h1><p><a href="https://zhuanlan.zhihu.com/p/660191327">https://zhuanlan.zhihu.com/p/660191327</a></p>
+<p>修改 终端用户名@主机名 字体</p>
+<img src="https://cdn.nlark.com/yuque/0/2025/png/12768172/1760941598221-aaf21fce-8ecb-4b21-8c5c-a13bb323c47a.png" width="1157" alt="" title="" crop="0,0,1,1" id="uab45b713" class="ne-image"><h1 id="h-4">nvim</h1><ol>
+<li>安装 nvim</li>
+<li>下载 lazy.nvim、telescope.nvim、plenary.nvim 插件，放到 C:\Users\11443\AppData\Local\nvim-data\lazy 目录</li>
+</ol>
+<pre><code class="language-lua">-- ==============================================
+-- lazy.nvim 管理器（手动本地安装，无git克隆）
+-- ==============================================
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+vim.opt.rtp:prepend(lazypath)
+
+vim.g.mapleader = " "
+vim.g.maplocalleader = " "
+
+-- 补全原脚本缺失的 ClosePair 函数（括号补全依赖）
+function _G.ClosePair(char)
+  local line = vim.fn.getline(".")
+  local col = vim.fn.col(".")
+  if col > #line or line:sub(col,col) ~= char then
+    return char
+  else
+    return ""
+  end
+end
+
+require("lazy").setup({
+    {
+      "nvim-telescope/telescope.nvim",
+      tag = "0.1.8",
+      dependencies = { "nvim-lua/plenary.nvim" },
+      config = function()
+        local telescope = require("telescope")
+        local actions = require("telescope.actions")
+
+        telescope.setup({
+            defaults = {
+              mappings = {
+                i = {
+                  ["<esc>"] = actions.close,
+                  ["<C-j>"] = actions.move_selection_next,
+                  ["<C-k>"] = actions.move_selection_previous,
+                },
+              },
+              vimgrep_arguments = {
+                "rg",
+                "--color=never",
+                "--no-heading",
+                "--with-filename",
+                "--line-number",
+                "--column",
+                "--smart-case",
+                "--hidden",
+              },
+            },
+            pickers = {
+              find_files = {
+                hidden = true,
+                follow = true,
+              }
+            }
+          })
+
+        vim.keymap.set("n", "<leader>ff", "<cmd>Telescope find_files<cr>", { desc = "Telescope 查找文件" })
+        vim.keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<cr>", { desc = "Telescope 全局文本搜索" })
+        vim.keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<cr>", { desc = "Telescope 切换缓冲区" })
+        vim.keymap.set("n", "<leader>fh", "<cmd>Telescope help_tags<cr>", { desc = "Telescope 查找帮助文档" })
+      end
+    }
+  },{
+    git = {
+      clone_timeout = 0,
+    },
+  })
+
+-- ==============================================
+-- 你的原有Vim配置，全部转为lua
+-- ==============================================
+vim.opt.autoread = true
+vim.opt.completeopt = {"preview","menu"}
+
+vim.opt.clipboard = "unnamed"
+vim.opt.backup = false
+vim.opt.autowrite = true
+-- 根据扩展名检测文件类型，并加载对应缩进规则
+vim.cmd("filetype plugin indent on")
+
+-- 启用内置语法高亮
+vim.cmd("syntax enable")
+
+-- Neovim 自带配色方案
+vim.cmd.colorscheme("habamax")
+
+vim.opt.makeprg = "g++ -Wall %"
+
+vim.opt.ruler = true
+vim.opt.cursorline = true
+vim.opt.cursorline = true
+vim.api.nvim_set_hl(0, "CursorLine", {
+    bg = "#303540",
+    ctermbg = 236,
+  })
+
+vim.opt.magic = true
+vim.opt.guioptions = vim.opt.guioptions - {'T'}
+vim.opt.guioptions = vim.opt.guioptions - {'m'}
+
+vim.opt.foldcolumn = "0"
+vim.opt.foldmethod = "indent"
+vim.opt.foldlevel = 3
+vim.opt.foldenable = true
+
+vim.opt.syntax = "on"
+vim.opt.confirm = true
+
+-- 缩进tab
+vim.opt.autoindent = true
+vim.opt.cindent = true
+vim.opt.tabstop = 4
+vim.opt.softtabstop = 4
+vim.opt.shiftwidth = 4
+vim.opt.expandtab = false
+vim.opt.smarttab = true
+
+vim.opt.number = true
+vim.opt.history = 30
+
+vim.opt.swapfile = false
+
+vim.opt.ignorecase = true
+vim.opt.smartcase = true
+vim.opt.hlsearch = true
+vim.opt.incsearch = true
+vim.opt.gdefault = true
+
+vim.opt.encoding = "utf-8"
+vim.opt.fileencodings = {"utf-8","ucs-bom","shift-jis","gb18030","gbk","gb2312","cp936"}
+
+-- vim.opt.langmenu = "zh_CN.UTF-8"
+vim.opt.helplang = "cn"
+
+vim.opt.laststatus = 2
+vim.opt.cmdheight = 2
+
+vim.opt.viminfo:append("!")
+vim.opt.iskeyword:append("_,$,@,%,#,-")
+vim.opt.linespace = 0
+
+vim.opt.wildmenu = true
+vim.opt.backspace = "2"
+vim.opt.whichwrap:append("<,>,h,l")
+
+vim.opt.mouse = "c"
+vim.opt.selection = "exclusive"
+vim.opt.selectmode = {"mouse","key"}
+vim.opt.report = 0
+vim.opt.fillchars = {vert=" ",stl=" ",stlnc=" "}
+
+vim.opt.showmatch = true
+vim.opt.matchtime = 1
+vim.opt.scrolloff = 3
+vim.opt.smartindent = true
+
+-- autocmd：c/cpp文件 <leader><space> 保存+make
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = {"c","cpp"},
+  callback = function()
+    vim.keymap.set("n","<leader><space>",":w<cr>:make<cr>",{buffer=true,noremap=true})
+  end
+})
+
+vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
+  pattern = "*",
+  callback = function()
+    if vim.bo.filetype == "" then
+      vim.bo.filetype = "text"
+    end
+  end,
+})
+
+-- =====================
+-- 括号自动配对映射 inoremap
+-- =====================
+vim.keymap.set("i","(","()<ESC>i",{noremap=true})
+vim.keymap.set("i",")","<c-r>=ClosePair(')')<CR>",{noremap=true})
+
+vim.keymap.set("i","{","{}<ESC>i",{noremap=true})
+vim.keymap.set("i","{<CR>","{<CR>}<ESC>O",{noremap=true})
+vim.keymap.set("i","}","<c-r>=ClosePair('}')<CR>",{noremap=true})
+
+vim.keymap.set("i","[","[]<ESC>i",{noremap=true})
+vim.keymap.set("i","]","<c-r>=ClosePair(']')<CR>",{noremap=true})
+
+vim.keymap.set("i",'"','""<ESC>i',{noremap=true})
+vim.keymap.set("i","'","''<ESC>i",{noremap=true})
+
+
+</code></pre>
+    </article>
+  </main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<script>
+  hljs.highlightAll();
+  mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' });
+</script>
+</body>
+</html>

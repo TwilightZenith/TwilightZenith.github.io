@@ -1,6 +1,6 @@
 # daff_page
 
-图书馆机器人 VLA 算法技术落地可行性报告的静态站点仓库。源文档为 Markdown，通过构建脚本生成自包含的 `index.html`，部署到 Cloudflare 静态托管，可以访问[https://wispy-butterfly-e184.adafftang0617.workers.dev/](https://wispy-butterfly-e184.adafftang0617.workers.dev/)。
+图书馆机器人 VLA 算法技术落地可行性报告的静态站点仓库。源文档为 Markdown，通过构建脚本生成静态页面，可部署到 [GitHub Pages](https://twilightzenith.github.io/) 或 [Cloudflare Workers](https://wispy-butterfly-e184.adafftang0617.workers.dev/)。
 
 ## 目录结构
 
@@ -16,7 +16,9 @@ daff_page/
 │   ├── index.html         # 首页
 │   ├── vla-tech.html
 │   └── beauty_vim.html
-├── index.html             # 根目录首页副本（仅本地预览用，勿手改）
+├── index.html             # GitHub Pages 首页（勿手改）
+├── beauty_vim.html        # GitHub Pages 第二页，带 .html 的地址（勿手改）
+├── beauty_vim/index.html  # GitHub Pages 第二页，/beauty_vim 路由（勿手改）
 ├── worker.js              # 构建产物（轻量路由兜底：/xxx → /xxx.html，勿手改）
 ├── wrangler.jsonc         # Cloudflare Workers 配置（main + assets 指向 dist/）
 ├── package.json           # npm 配置（build/dev 脚本 + marked 依赖）
@@ -24,7 +26,7 @@ daff_page/
 └── .gitignore             # 忽略 node_modules / .wrangler 等
 ```
 
-> `dist/`、`index.html` 与 `worker.js` 均由构建脚本自动生成，修改源文档后需重新构建；不要直接编辑它们。`dist/` 必须提交到 Git（Cloudflare 构建仅执行 deploy 命令，不执行 build）。
+> `dist/`、根目录生成的 HTML 与 `worker.js` 均由构建脚本自动生成，修改源文档后需重新构建；不要直接编辑它们。生成文件必须提交到 Git（Cloudflare 构建仅执行 deploy 命令，不执行 build；GitHub Pages 从仓库根目录发布）。
 
 ## 前置要求
 
@@ -41,7 +43,7 @@ npm install
 npm run build
 ```
 
-构建产物输出到 `dist/`（独立 HTML 静态文件）与 `worker.js`（轻量路由兜底）；根目录 `index.html` 为首页副本，仅本地预览用。
+构建产物输出到 `dist/`（Cloudflare 静态文件）、`worker.js`（Cloudflare 路由兜底）和仓库根目录（GitHub Pages 静态文件）。
 
 ## 本地预览
 
@@ -74,7 +76,7 @@ start index.html
 | 源文件 | 路由 | 说明 |
 | --- | --- | --- |
 | `docs/vla-tech.md` | `/`（及 `/vla-tech`、`/vla-tech.html`） | 默认首页 |
-| `docs/beauty_vim.md` | `/beauty_vim`（及 `/beauty_vim.html`） | 自动生成的第二页 |
+| `docs/beauty_vim.md` | `/beauty_vim`（及 `/beauty_vim.html`） | 自动生成的第二页；GitHub Pages 将前者转到 `/beauty_vim/` |
 
 **页面间跳转方式：**
 
@@ -85,7 +87,7 @@ start index.html
 [Vim 配置笔记](beauty_vim.md)
 ```
 
-构建后链接会自动变成 `beauty_vim.html`（Worker 路由同时接受 `/beauty_vim` 与 `/beauty_vim.html`），点击即可跳转。
+构建后链接会自动变成 `beauty_vim.html`；GitHub Pages 与 Cloudflare 均可访问。
 
 > ⚠️ 不要用 `file:///...` 绝对本地路径写链接（如 `[xxx](file:///D:/.../xxx.md)`），部署到 Cloudflare 后无效。
 
@@ -98,12 +100,14 @@ start index.html
 3. 提交并推送：
 
 ```bash
-git add docs/ index.html worker.js
+git add docs/ dist/ index.html beauty_vim.html beauty_vim/index.html worker.js
 git commit -m "docs: 更新报告内容"
 git push
 ```
 
 > 推送后 Cloudflare 的 Git 集成会自动重新构建部署（执行 `npx wrangler deploy`，读取 `wrangler.jsonc`）。
+
+GitHub Pages 若设置为从默认分支的仓库根目录发布，推送后也会更新 `https://twilightzenith.github.io/beauty_vim`。GitHub Pages 不执行 `worker.js`，所以页面必须存在于根目录的对应路径。
 
 ## 部署到 Cloudflare
 

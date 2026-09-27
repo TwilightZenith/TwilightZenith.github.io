@@ -4,7 +4,8 @@
  * 依赖：marked（npm install marked）
  *
  * 约定：
- *  - docs/*.md 每个文件生成 dist/{文件名}.html（静态资产，Cloudflare 直接按路径返回）
+ *  - docs/*.md 每个文件生成 dist/{文件名}.html（Cloudflare 静态资产）
+ *  - 非首页同时生成根目录 {文件名}.html 和 {文件名}/index.html（GitHub Pages 路由）
  *  - vla-tech.md 同时作为首页（dist/index.html）
  *  - md 内站内链接写相对路径 xxx.md，构建时自动重写为 xxx.html
  *  - worker.js 仅做友好路由兜底：/xxx → /xxx.html（页面本体全部在 dist/，不再内嵌）
@@ -17,7 +18,7 @@ import { marked } from 'marked';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DOCS_DIR = join(ROOT, 'docs');
 const DIST_DIR = join(ROOT, 'dist');
-const OUT_PATH = join(ROOT, 'index.html'); // 根目录首页副本，仅本地预览用
+const OUT_PATH = join(ROOT, 'index.html'); // GitHub Pages 根目录首页
 const WORKER_PATH = join(ROOT, 'worker.js');
 const HOME_ROUTE = 'vla-tech'; // 默认首页
 
@@ -199,10 +200,18 @@ for (const p of pages) {
 // 首页别名 index.html
 const homePage = pages[homeIdx];
 writeFileSync(join(DIST_DIR, 'index.html'), homePage.html, 'utf8');
-// 根目录首页副本（仅本地双击预览用，部署一律走 dist/）
+// GitHub Pages 从仓库根目录发布，不会使用 Cloudflare Worker 的路由兜底。
 writeFileSync(OUT_PATH, homePage.html, 'utf8');
+for (const p of pages) {
+  if (p === homePage) continue;
+  writeFileSync(join(ROOT, `${p.route}.html`), p.html, 'utf8');
+  const routeDir = join(ROOT, p.route);
+  mkdirSync(routeDir, { recursive: true });
+  writeFileSync(join(routeDir, 'index.html'), p.html, 'utf8');
+}
 
 console.log(`✔ ${DIST_DIR}/ 已生成 ${pages.length} 个页面（${[...pages.map((p) => `${p.route}.html`), 'index.html'].join(', ')}）`);
+console.log('✔ 根目录已生成 GitHub Pages 首页及非首页的 .html、目录路由');
 
 // ---- 生成 Cloudflare Worker（轻量路由兜底，页面本体在 dist/ 静态资产）----
 const worker = `/**
