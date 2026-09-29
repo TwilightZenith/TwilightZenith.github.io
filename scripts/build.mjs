@@ -4,14 +4,14 @@
  * 依赖：marked（npm install marked）
  *
  * 约定：
- *  - docs/*.md 每个文件生成 dist/{文件名}.html（Cloudflare 静态资产）
- *  - 非首页同时生成根目录 {文件名}.html 和 {文件名}/index.html（GitHub Pages 路由）
- *  - vla-tech.md 同时作为首页（dist/index.html）
+ *  - docs/*.md 每个文件生成 dist/{文件名}.html 与 dist/{文件名}/index.html（Cloudflare 静态资产）
+ *  - 每个文档同时生成根目录 {文件名}.html 和 {文件名}/index.html（GitHub Pages 路由）
+ *  - 仓库根目录 index.html 为手写项目主页，构建时复制到 dist/index.html（两个托管平台共用）
  *  - md 内站内链接写相对路径 xxx.md，构建时自动重写为 xxx.html
  *  - 根目录 assets/ 中的图片等文件复制到 dist/assets/，供两个托管平台使用
  *  - worker.js 仅做友好路由兜底：/xxx → /xxx.html（页面本体全部在 dist/，不再内嵌）
  */
-import { readFileSync, writeFileSync, readdirSync, mkdirSync, rmSync, cpSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, copyFileSync, readdirSync, mkdirSync, rmSync, cpSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, basename } from 'node:path';
 import { marked } from 'marked';
@@ -20,9 +20,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DOCS_DIR = join(ROOT, 'docs');
 const DIST_DIR = join(ROOT, 'dist');
 const ASSETS_DIR = join(ROOT, 'assets');
-const OUT_PATH = join(ROOT, 'index.html'); // GitHub Pages 根目录首页
+const HOME_PAGE = join(ROOT, 'index.html'); // 手写项目主页（GitHub Pages 根目录首页）
 const WORKER_PATH = join(ROOT, 'worker.js');
-const HOME_ROUTE = 'vla-tech'; // 默认首页
 
 // ---- marked 全局配置（toc / extraHeadingSeq 为模块级，渲染前重置）----
 let toc = [];
@@ -132,7 +131,7 @@ function buildHtml({ title, navHtml, tocHtml, bodyHtml }) {
 </style>
 </head>
 <body>
-<nav class="sitenav" aria-label="站点导航"><span class="label">📄 页面：</span>${navHtml}</nav>
+<nav class="sitenav" aria-label="站点导航"><span class="label">页面：</span><a href="/">首页</a>${navHtml}</nav>
 <div class="layout">
   <nav class="toc" aria-label="目录">
     <div class="brand">📚 本页目录</div>
@@ -162,6 +161,10 @@ if (mdFiles.length === 0) {
   console.error('✘ docs/ 下没有 Markdown 文件');
   process.exit(1);
 }
+if (!existsSync(HOME_PAGE)) {
+  console.error(`✘ 未找到手写主页 ${HOME_PAGE}，构建中止`);
+  process.exit(1);
+}
 
 const pages = [];
 for (const file of mdFiles) {
@@ -172,23 +175,13 @@ for (const file of mdFiles) {
   pages.push({ route, title, md });
 }
 
-// 首页 = HOME_ROUTE 对应页（不存在则取第一个）
-const homeIndex = pages.findIndex((p) => p.route === HOME_ROUTE);
-const homeIdx = homeIndex >= 0 ? homeIndex : 0;
-
-// 站点导航条（首页为 /，其余为 /route）
-const navHtml = pages
-  .map((p) => {
-    const href = p.route === pages[homeIdx].route ? '/' : `/${p.route}`;
-    return `<a href="${href}">${p.route}</a>`;
-  })
-  .join('');
+// 站点导航条：首页 + 各文档路由
+const navHtml = pages.map((p) => `<a href="/${p.route}">${p.route}</a>`).join('');
 
 // 逐页生成 HTML
 for (const p of pages) {
   const { bodyHtml, tocHtml } = renderPage(p.md);
   p.html = buildHtml({ title: p.title, navHtml, tocHtml, bodyHtml });
-  p.tocCount = toc.length;
 }
 
 // ---- 输出静态资产到 dist/ ----
@@ -199,24 +192,27 @@ if (existsSync(ASSETS_DIR)) {
   cpSync(ASSETS_DIR, join(DIST_DIR, 'assets'), { recursive: true });
 }
 
+// 手写主页复制到 dist/index.html
+copyFileSync(HOME_PAGE, join(DIST_DIR, 'index.html'));
+console.log('✔ dist/index.html（手写主页）已复制');
+
 for (const p of pages) {
   writeFileSync(join(DIST_DIR, `${p.route}.html`), p.html, 'utf8');
+  const distRouteDir = join(DIST_DIR, p.route);
+  mkdirSync(distRouteDir, { recursive: true });
+  writeFileSync(join(distRouteDir, 'index.html'), p.html, 'utf8');
 }
-// 首页别名 index.html
-const homePage = pages[homeIdx];
-writeFileSync(join(DIST_DIR, 'index.html'), homePage.html, 'utf8');
-// GitHub Pages 从仓库根目录发布，不会使用 Cloudflare Worker 的路由兜底。
-writeFileSync(OUT_PATH, homePage.html, 'utf8');
+
+// GitHub Pages 从仓库根目录发布：每个文档生成 {route}.html 与 {route}/index.html
 for (const p of pages) {
-  if (p === homePage) continue;
   writeFileSync(join(ROOT, `${p.route}.html`), p.html, 'utf8');
   const routeDir = join(ROOT, p.route);
   mkdirSync(routeDir, { recursive: true });
   writeFileSync(join(routeDir, 'index.html'), p.html, 'utf8');
 }
 
-console.log(`✔ ${DIST_DIR}/ 已生成 ${pages.length} 个页面（${[...pages.map((p) => `${p.route}.html`), 'index.html'].join(', ')}）`);
-console.log('✔ 根目录已生成 GitHub Pages 首页及非首页的 .html、目录路由');
+console.log(`✔ ${DIST_DIR}/ 已生成 ${pages.length} 个文档页面 + 手写主页`);
+console.log('✔ 根目录已生成各文档的 .html 与目录路由（GitHub Pages）');
 
 // ---- 生成 Cloudflare Worker（轻量路由兜底，页面本体在 dist/ 静态资产）----
 const worker = `/**
@@ -225,7 +221,8 @@ const worker = `/**
  *
  * 静态页面由 dist/ 目录提供（见 wrangler.jsonc 的 assets 配置），
  * 本 worker 仅负责友好路由：
- *   - /beauty_vim   → 尝试 /beauty_vim.html（无扩展名路径补 .html）
+ *   - /beauty_vim/   → 尝试 /beauty_vim/index.html（目录路径补 index.html）
+ *   - /beauty_vim    → 尝试 /beauty_vim.html（无扩展名路径补 .html）
  *   - 其余请求      → 交给静态资产（存在返回文件，不存在返回 404）
  */
 export default {
@@ -238,10 +235,11 @@ export default {
       return env.ASSETS.fetch(request);
     }
 
-    // 无扩展名路径 → 尝试补 .html（如 /beauty_vim → /beauty_vim.html）
+    // 无扩展名路径 → 目录补 /index.html，文件补 .html
     if (!path.includes('.')) {
-      const probe = new Request(url.origin + path + '.html', request);
-      const res = await env.ASSETS.fetch(probe);
+      const suffix = path.endsWith('/') ? 'index.html' : '.html';
+      const probe = new URL(url.origin + path + suffix, request.url);
+      const res = await env.ASSETS.fetch(new Request(probe, request));
       if (res.status !== 404) return res;
     }
 

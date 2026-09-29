@@ -7,7 +7,7 @@
 ```
 daff_page/
 ├── docs/
-│   ├── vla-tech.md        # 源文档 1：VLA 报告（默认首页 /）
+│   ├── vla-tech.md        # 源文档 1：VLA 报告（路由 /vla-tech）
 │   ├── beauty_vim.md      # 源文档 2：Vim/终端配置笔记（路由 /beauty_vim）
 │   └── VLN.md             # 源文档 3：VLN 笔记（路由 /VLN）
 ├── assets/
@@ -16,16 +16,18 @@ daff_page/
 │   ├── build.mjs          # 构建脚本：扫描 docs/*.md → dist/、根目录页面 + worker.js
 │   └── server.mjs         # 本地开发服务器：模拟 Cloudflare Worker（静态资产模式）
 ├── dist/                  # Cloudflare 构建产物：HTML + assets/（勿手改）
-│   ├── index.html         # 首页
-│   ├── vla-tech.html
-│   ├── beauty_vim.html
-│   ├── VLN.html
+│   ├── index.html         # 项目主页（构建时从根目录 index.html 复制）
+│   ├── vla-tech.html / vla-tech/index.html
+│   ├── beauty_vim.html / beauty_vim/index.html
+│   ├── VLN.html / VLN/index.html
 │   └── assets/            # 从根目录 assets/ 复制的图片等文件
-├── index.html             # GitHub Pages 首页（勿手改）
-├── beauty_vim.html        # GitHub Pages 第二页，带 .html 的地址（勿手改）
-├── beauty_vim/index.html  # GitHub Pages 第二页，/beauty_vim 路由（勿手改）
-├── VLN.html               # GitHub Pages VLN 页面（勿手改）
-├── VLN/index.html         # GitHub Pages /VLN 路由（勿手改）
+├── index.html             # GitHub Pages 项目主页（手写维护，构建时复制到 dist/）
+├── vla-tech.html          # GitHub Pages 文档页，带 .html 的地址（勿手改）
+├── vla-tech/index.html    # GitHub Pages 文档页，/vla-tech 路由（勿手改）
+├── beauty_vim.html        # GitHub Pages 文档页，带 .html 的地址（勿手改）
+├── beauty_vim/index.html  # GitHub Pages 文档页，/beauty_vim 路由（勿手改）
+├── VLN.html               # GitHub Pages 文档页，带 .html 的地址（勿手改）
+├── VLN/index.html         # GitHub Pages 文档页，/VLN 路由（勿手改）
 ├── worker.js              # 构建产物（轻量路由兜底：/xxx → /xxx.html，勿手改）
 ├── wrangler.jsonc         # Cloudflare Workers 配置（main + assets 指向 dist/）
 ├── package.json           # npm 配置（build/dev 脚本 + marked 依赖）
@@ -33,7 +35,7 @@ daff_page/
 └── .gitignore             # 忽略 node_modules / .wrangler 等
 ```
 
-> `dist/`、根目录生成的 HTML 与 `worker.js` 均由构建脚本自动生成，修改源文档或图片后需重新构建；不要直接编辑它们。源图片和生成文件必须提交到 Git（Cloudflare 构建仅执行 deploy 命令，不执行 build；GitHub Pages 从仓库根目录发布）。
+> `dist/`、根目录除 `index.html` 外的 HTML 与 `worker.js` 均由构建脚本自动生成，修改源文档或图片后需重新构建；不要直接编辑它们。`index.html` 是手写项目主页，构建时只读复制到 `dist/`，不会被覆盖。源图片和生成文件必须提交到 Git（Cloudflare 构建仅执行 deploy 命令，不执行 build；GitHub Pages 从仓库根目录发布）。
 
 ## 前置要求
 
@@ -78,13 +80,14 @@ start index.html
 
 ## 多页面与站内链接
 
-`npm run build` 会扫描 `docs/*.md`，**每个文件生成一个独立页面**：
+`npm run build` 会扫描 `docs/*.md`，**每个文件生成一个独立页面**；根目录 `index.html` 为手写项目主页：
 
-| 源文件 | 路由 | 说明 |
+| 文件 | 路由 | 说明 |
 | --- | --- | --- |
-| `docs/vla-tech.md` | `/`（及 `/vla-tech`、`/vla-tech.html`） | 默认首页 |
-| `docs/beauty_vim.md` | `/beauty_vim`（及 `/beauty_vim.html`） | 自动生成的第二页；GitHub Pages 将前者转到 `/beauty_vim/` |
-| `docs/VLN.md` | `/VLN`（及 `/VLN.html`） | 自动生成的 VLN 页面 |
+| `index.html` | `/`（及 `/index.html`） | 手写项目主页（视频 + 文字介绍 + 技术文档入口） |
+| `docs/vla-tech.md` | `/vla-tech`（及 `/vla-tech.html`、`/vla-tech/`） | VLA 报告 |
+| `docs/beauty_vim.md` | `/beauty_vim`（及 `/beauty_vim.html`） | Vim/终端配置笔记 |
+| `docs/VLN.md` | `/VLN`（及 `/VLN.html`） | VLN 笔记 |
 
 **页面间跳转方式：**
 
@@ -134,7 +137,7 @@ GitHub Pages 当前从仓库**根目录**发布文件。旧版构建只在根目
 3. 提交并推送：
 
 ```bash
-git add docs/ assets/ dist/ scripts/build.mjs index.html beauty_vim.html beauty_vim/index.html VLN.html VLN/index.html worker.js
+git add docs/ assets/ dist/ scripts/build.mjs index.html vla-tech.html vla-tech/index.html beauty_vim.html beauty_vim/index.html VLN.html VLN/index.html worker.js
 git commit -m "docs: 更新报告内容"
 git push
 ```

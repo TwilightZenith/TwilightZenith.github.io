@@ -8,7 +8,7 @@
  *  - worker.js 的 fetch 逻辑（/xxx → /xxx.html 友好路由）
  */
 import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, extname, normalize, sep } from 'node:path';
 import worker from '../worker.js';
@@ -35,6 +35,7 @@ const MIME = {
 };
 
 // 模拟 Cloudflare ASSETS binding：按路径返回 dist/ 下的文件
+// （目录路径返回该目录下的 index.html，与 Cloudflare 静态资产行为一致）
 const ASSETS = {
   async fetch(request) {
     const url = new URL(request.url);
@@ -47,12 +48,21 @@ const ASSETS = {
       return new Response('Forbidden', { status: 403 });
     }
 
+    // 目录路径 → 目录下的 index.html
+    let target = file;
     try {
-      const data = await readFile(file);
+      if ((await stat(target)).isDirectory()) target = join(file, 'index.html');
+    } catch {
+      // 路径不存在，继续走 readFile 得到 404
+    }
+
+    try {
+      const data = await readFile(target);
       return new Response(data, {
         headers: {
-          'Content-Type': MIME[extname(file)] || 'application/octet-stream',
-          'Cache-Control': 'public, max-age=3600',
+          'Content-Type': MIME[extname(target)] || 'application/octet-stream',
+          // 本地 dev 不缓存，避免浏览器拿到旧页面；部署到 Cloudflare 后由 CDN 处理缓存
+          'Cache-Control': 'no-store',
         },
       });
     } catch {

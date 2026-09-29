@@ -4,7 +4,8 @@
  *
  * 静态页面由 dist/ 目录提供（见 wrangler.jsonc 的 assets 配置），
  * 本 worker 仅负责友好路由：
- *   - /beauty_vim   → 尝试 /beauty_vim.html（无扩展名路径补 .html）
+ *   - /beauty_vim/   → 尝试 /beauty_vim/index.html（目录路径补 index.html）
+ *   - /beauty_vim    → 尝试 /beauty_vim.html（无扩展名路径补 .html）
  *   - 其余请求      → 交给静态资产（存在返回文件，不存在返回 404）
  */
 export default {
@@ -17,10 +18,11 @@ export default {
       return env.ASSETS.fetch(request);
     }
 
-    // 无扩展名路径 → 尝试补 .html（如 /beauty_vim → /beauty_vim.html）
+    // 无扩展名路径 → 目录补 /index.html，文件补 .html
     if (!path.includes('.')) {
-      const probe = new Request(url.origin + path + '.html', request);
-      const res = await env.ASSETS.fetch(probe);
+      const suffix = path.endsWith('/') ? 'index.html' : '.html';
+      const probe = new URL(url.origin + path + suffix, request.url);
+      const res = await env.ASSETS.fetch(new Request(probe, request));
       if (res.status !== 404) return res;
     }
 
